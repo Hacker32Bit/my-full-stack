@@ -112,3 +112,56 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+
+class CategoryCreate(SQLModel):
+    name: str = Field(max_length=255)
+
+class CategoryUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=255)
+
+class CategoryPublic(SQLModel):
+    id: uuid.UUID
+    name: str
+
+class CategoriesPublic(SQLModel):
+    data: list[CategoryPublic]
+    count: int
+
+class Category(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(unique=True, index=True, max_length=255)
+    products: list["Product"] = Relationship(back_populates="category")
+
+class Product(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(index=True, max_length=255)
+    category_id: uuid.UUID = Field(foreign_key="category.id")
+    price: float = Field(ge=0, default=0)
+    rating: float = Field(ge=0, le=5, default=5)
+    owner_id: uuid.UUID = Field(foreign_key="user.id")
+
+    category: Category | None = Relationship(back_populates="products")
+
+class ProductCreate(SQLModel):
+    name: str = Field(max_length=255)
+    category_id: uuid.UUID
+    price: float
+    rating: float
+
+class ProductUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=255)
+    price: float | None
+    rating: float | None
+    category_id: uuid.UUID | None
+
+class ProductPublic(SQLModel):
+    id: uuid.UUID
+    name: str
+    price: float
+    rating: float
+    category_id: uuid.UUID
+
+class ProductsPublic(SQLModel):
+    data: list[ProductPublic]
+    count: int
